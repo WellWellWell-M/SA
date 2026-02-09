@@ -1,0 +1,536 @@
+/**
+ * 组件样式文件
+ * 包含所有页面组件的样式定义
+ * 组件包括：聊天框、卡片、按钮、侧边栏等
+ */
+
+/* ========================================
+   聊天对话组件
+   ======================================== */
+
+/**
+ * 聊天历史记录容器
+ * 显示所有聊天消息的滚动区域
+ */
+.chat-history-container {
+    height: 450px;
+    /* 固定高度 450px */
+    overflow-y: auto;
+    /* 垂直方向允许滚动 */
+    padding-right: 15px;
+    /* 右侧内边距，为滚动条留空间 */
+    margin-bottom: 20px;
+    /* 底部外边距 */
+
+    /* Firefox 浏览器的滚动条样式 */
+    scrollbar-width: thin;
+    /* 细滚动条 */
+    scrollbar-color: var(--primary-dim) var(--bg);
+    /* 滚动条颜色 */
+}
+
+/**
+ * 移动端适配：平板及以下设备
+ * 屏幕宽度 ≤ 768px 时生效
+ */
+@media (max-width: 768px) {
+    .chat-history-container {
+        height: 300px;
+        /* 减小高度到 300px */
+        padding-right: 10px;
+        /* 减小右侧内边距 */
+    }
+}
+
+/**
+ * 哨兵消息（左对齐）
+ * 来自 AI 哨兵的消息
+ */
+.message-sentinel {
+    align-items: flex-start;
+    /* 内容左对齐 */
+}
+
+/**
+ * 操作员消息（右对齐）
+ * 来自用户的消息
+ */
+.message-operator {
+    align-items: flex-end;
+    /* 内容右对齐 */
+}
+
+/**
+ * 消息元信息
+ * 显示发送者、时间戳等信息
+ */
+.message-meta {
+    font-family: 'JetBrains Mono', monospace;
+    /* 等宽字体 */
+    font-size: 10px;
+    /* 小字体 */
+    color: var(--gray);
+    /* 灰色文字 */
+    margin-bottom: 6px;
+    /* 底部间距 */
+    display: flex;
+    /* 弹性布局 */
+    align-items: center;
+    /* 垂直居中 */
+    gap: 8px;
+    /* 元素间距 */
+}
+
+/**
+ * 消息气泡
+ * 包含实际消息内容的容器
+ */
+.message-bubble {
+    max-width: 85%;
+    /* 最大宽度 85%，不会占满整行 */
+    padding: 16px 20px;
+    /* 内边距：上下 16px，左右 20px */
+    position: relative;
+    /* 相对定位，为伪元素提供基准 */
+    font-family: 'Noto Serif SC', serif;
+    /* 衬线字体，更优雅 */
+    line-height: 1.7;
+    /* 行高 1.7 倍，增加可读性 */
+}
+
+/**
+ * 哨兵消息气泡样式
+ * 左侧绿色边框，微妙的背景
+ */
+.message-sentinel .message-bubble {
+    background: rgba(255, 255, 255, 0.03);
+    /* 3% 白色背景 */
+    border-left: 2px solid var(--accent);
+    /* 左侧绿色边框 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    /* 底部微妙边框 */
+}
+
+/**
+ * 操作员消息气泡样式
+ * 右侧黄绿色边框，黄绿色背景和文字
+ */
+.message-operator .message-bubble {
+    background: rgba(209, 255, 77, 0.05);
+    /* 5% 主色调背景 */
+    border-right: 2px solid var(--primary);
+    /* 右侧主色调边框 */
+    border-bottom: 1px solid var(--primary-dim);
+    /* 底部主色调边框 */
+    text-align: right;
+    /* 文字右对齐 */
+    color: var(--primary);
+    /* 主色调文字 */
+}
+
+/**
+ * 技术页脚
+ * 显示技术信息（如信号强度、上传状态等）
+ */
+.tech-footer {
+    font-family: 'JetBrains Mono', monospace;
+    /* 等宽字体 */
+    font-size: 9px;
+    /* 非常小的字体 */
+    margin-top: 8px;
+    /* 顶部间距 */
+    opacity: 0.6;
+    /* 60% 不透明度 */
+    text-transform: uppercase;
+    /* 文字转大写 */
+}
+
+/* ========================================
+   终端输入区域
+   ======================================== */
+
+/**
+ * 终端输入区域容器
+ * 包含提示符、输入框和执行按钮
+ */
+.terminal-input-area {
+    display: flex;
+    /* 弹性布局 */
+    align-items: center;
+    /* 垂直居中 */
+    background: #000;
+    /* 纯黑背景 */
+    border: 1px solid var(--primary-dim);
+    /* 主色调边框 */
+    padding: 12px 15px;
+    /* 内边距 */
+    font-family: 'JetBrains Mono', monospace;
+    /* 等宽字体 */
+    gap: 10px;
+    /* 元素间距 */
+}
+
+/**
+ * 移动端适配：手机设备
+ * 屏幕宽度 ≤ 640px 时生效
+ */
+@media (max-width: 640px) {
+    .terminal-input-area {
+        padding: 10px 12px;
+        /* 减小内边距 */
+        gap: 8px;
+        /* 减小间距 */
+    }
+}
+
+/**
+ * 输入提示符
+ * 显示类似 "MENG@M3PRO:~$" 的终端提示符
+ */
+.input-prompt {
+    color: var(--primary);
+    /* 主色调文字 */
+    font-weight: bold;
+    /* 粗体 */
+    white-space: nowrap;
+    /* 不换行 */
+}
+
+/**
+ * 命令输入框
+ * 用户输入命令的文本框
+ */
+.command-input {
+    flex-grow: 1;
+    /* 占据剩余空间 */
+    background: transparent;
+    /* 透明背景 */
+    border: none;
+    /* 无边框 */
+    color: var(--primary);
+    /* 主色调文字 */
+    font-size: 14px;
+    /* 字体大小 */
+    outline: none;
+    /* 移除聚焦时的轮廓 */
+    caret-color: var(--primary);
+    /* 光标颜色 */
+}
+
+/**
+ * 执行按钮
+ * 点击后发送命令
+ */
+.execute-btn {
+    background: transparent;
+    /* 透明背景 */
+    border: 1px solid var(--primary);
+    /* 主色调边框 */
+    color: var(--primary);
+    /* 主色调文字 */
+    padding: 4px 15px;
+    /* 内边距 */
+    font-size: 11px;
+    /* 字体大小 */
+    cursor: pointer;
+    /* 鼠标指针变为手型 */
+    transition: all 0.2s;
+    /* 所有属性平滑过渡 */
+    text-transform: uppercase;
+    /* 文字转大写 */
+    min-height: 32px;
+    /* 最小高度，确保易于点击 */
+}
+
+/**
+ * 移动端适配：手机设备
+ * 增大触摸区域，更易于点击
+ */
+@media (max-width: 640px) {
+    .execute-btn {
+        padding: 6px 12px;
+        /* 增大内边距 */
+        font-size: 10px;
+        /* 稍小字体 */
+        min-height: 40px;
+        /* 更大的最小高度，符合移动端触摸标准 */
+    }
+}
+
+/**
+ * 执行按钮悬停效果
+ * 鼠标悬停时反转颜色
+ */
+.execute-btn:hover {
+    background: var(--primary);
+    /* 背景变为主色调 */
+    color: #000;
+    /* 文字变为黑色 */
+}
+
+/* ========================================
+   主布局容器
+   ======================================== */
+
+/**
+ * 主容器
+ * 使用 Grid 布局，分为主内容区和侧边栏
+ */
+.main-container {
+    display: grid;
+    /* Grid 布局 */
+    grid-template-columns: 1fr 320px;
+    /* 两列：主内容自适应，侧边栏 320px */
+    gap: 40px;
+    /* 列间距 40px */
+    max-width: 1400px;
+    /* 最大宽度 1400px */
+    margin: 0 auto;
+    /* 水平居中 */
+    padding: 60px 20px;
+    /* 内边距 */
+}
+
+/**
+ * 平板适配：屏幕宽度 ≤ 1024px
+ * 切换为单列布局
+ */
+@media (max-width: 1024px) {
+    .main-container {
+        grid-template-columns: 1fr;
+        /* 单列布局 */
+        gap: 30px;
+        /* 减小间距 */
+        padding: 40px 15px;
+        /* 减小内边距 */
+    }
+}
+
+/**
+ * 手机适配：屏幕宽度 ≤ 640px
+ * 进一步减小间距
+ */
+@media (max-width: 640px) {
+    .main-container {
+        padding: 30px 12px;
+        /* 更小的内边距 */
+        gap: 20px;
+        /* 更小的间距 */
+    }
+}
+
+/* ========================================
+   内容卡片
+   ======================================== */
+
+/**
+ * 内容卡片
+ * 用于包裹各个内容区块
+ */
+.content-card {
+    background: var(--surface);
+    /* 表面背景色 */
+    border: 1px solid var(--primary-dim);
+    /* 主色调边框 */
+    padding: 40px;
+    /* 内边距 */
+    margin-bottom: 40px;
+    /* 底部外边距 */
+
+    /* 平滑过渡效果，使用贝塞尔曲线 */
+    transition: 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/**
+ * 平板适配：屏幕宽度 ≤ 768px
+ */
+@media (max-width: 768px) {
+    .content-card {
+        padding: 24px;
+        /* 减小内边距 */
+        margin-bottom: 24px;
+        /* 减小外边距 */
+    }
+}
+
+/**
+ * 手机适配：屏幕宽度 ≤ 640px
+ */
+@media (max-width: 640px) {
+    .content-card {
+        padding: 20px;
+        /* 更小的内边距 */
+        margin-bottom: 20px;
+        /* 更小的外边距 */
+    }
+}
+
+/**
+ * 卡片悬停效果
+ * 鼠标悬停时高亮边框和添加光晕
+ */
+.content-card:hover {
+    border-color: var(--primary);
+    /* 边框变为主色调 */
+    box-shadow: 0 0 30px rgba(209, 255, 77, 0.05);
+    /* 添加主色调光晕 */
+}
+
+/* ========================================
+   终端标题栏
+   ======================================== */
+
+/**
+ * 终端标题栏
+ * 每个内容卡片顶部的标题区域
+ */
+.terminal-header {
+    border-bottom: 1px solid var(--primary-dim);
+    /* 底部边框 */
+    padding-bottom: 20px;
+    /* 底部内边距 */
+    margin-bottom: 30px;
+    /* 底部外边距 */
+    display: flex;
+    /* 弹性布局 */
+    justify-content: space-between;
+    /* 两端对齐 */
+    align-items: flex-end;
+    /* 底部对齐 */
+}
+
+/**
+ * 手机适配：屏幕宽度 ≤ 640px
+ * 改为垂直布局
+ */
+@media (max-width: 640px) {
+    .terminal-header {
+        flex-direction: column;
+        /* 垂直排列 */
+        align-items: flex-start;
+        /* 左对齐 */
+        gap: 12px;
+        /* 元素间距 */
+        padding-bottom: 15px;
+        /* 减小底部内边距 */
+        margin-bottom: 20px;
+        /* 减小底部外边距 */
+    }
+}
+
+/**
+ * 公式显示区域
+ * 用于显示数学公式（MathJax）
+ */
+.formula-display {
+    background: #000;
+    /* 黑色背景 */
+    padding: 20px;
+    /* 内边距 */
+    border-left: 3px solid var(--primary);
+    /* 左侧主色调边框 */
+    font-family: 'JetBrains Mono', monospace;
+    /* 等宽字体 */
+    color: var(--primary);
+    /* 主色调文字 */
+    margin: 20px 0;
+    /* 上下外边距 */
+    position: relative;
+    /* 相对定位 */
+}
+
+/* ========================================
+   侧边栏
+   ======================================== */
+
+/**
+ * 侧边栏容器
+ * 显示状态信息和协议列表
+ */
+.sidebar {
+    position: sticky;
+    /* 粘性定位，滚动时固定 */
+    top: 40px;
+    /* 距离顶部 40px */
+    height: fit-content;
+    /* 高度适应内容 */
+}
+
+/**
+ * 平板及以下适配：屏幕宽度 ≤ 1024px
+ * 取消粘性定位
+ */
+@media (max-width: 1024px) {
+    .sidebar {
+        position: static;
+        /* 静态定位，正常流布局 */
+    }
+}
+
+/**
+ * 状态面板
+ * 显示系统状态信息
+ */
+.status-panel {
+    background: #0a0c0a;
+    /* 深色背景 */
+    border: 1px solid var(--primary-dim);
+    /* 主色调边框 */
+    padding: 20px;
+    /* 内边距 */
+    font-size: 12px;
+    /* 字体大小 */
+    color: var(--gray);
+    /* 灰色文字 */
+}
+
+/**
+ * 状态行
+ * 每一行状态信息（如 OPERATOR: MENG_LIAO）
+ */
+.status-row {
+    display: flex;
+    /* 弹性布局 */
+    justify-content: space-between;
+    /* 两端对齐 */
+    margin-bottom: 8px;
+    /* 底部间距 */
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    /* 虚线底部边框 */
+    padding-bottom: 4px;
+    /* 底部内边距 */
+}
+
+/**
+ * 状态值
+ * 状态行中的值部分（如 MENG_LIAO）
+ */
+.status-value {
+    color: var(--primary);
+    /* 主色调文字 */
+}
+
+/**
+ * 标签
+ * 用于标记重要信息（如 LIVE、01、02 等）
+ */
+.tag {
+    display: inline-block;
+    /* 行内块 */
+    background: var(--primary);
+    /* 主色调背景 */
+    color: #000;
+    /* 黑色文字 */
+    padding: 1px 8px;
+    /* 内边距 */
+    font-size: 10px;
+    /* 字体大小 */
+    font-weight: bold;
+    /* 粗体 */
+    text-transform: uppercase;
+    /* 转大写 */
+    margin-right: 10px;
+    /* 右侧外边距 */
+    vertical-align: middle;
+    /* 垂直居中对齐 */
+}

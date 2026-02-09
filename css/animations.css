@@ -1,0 +1,296 @@
+/**
+ * 动画效果文件
+ * 包含所有的 CSS 动画定义和相关样式
+ * 如果想要禁用动画，可以注释掉这个文件的引用
+ */
+
+/* ========================================
+   故障文字效果 (Glitch Text Effect)
+   ======================================== */
+
+/**
+ * 故障文字容器
+ * 使用伪元素创建重影效果，模拟信号干扰
+ */
+.glitch-text {
+    position: relative;
+    /* 相对定位，为伪元素提供定位基准 */
+    display: inline-block;
+    /* 行内块元素，宽度由内容决定 */
+}
+
+/**
+ * 故障文字的伪元素
+ * ::before 和 ::after 创建两个重影层
+ */
+.glitch-text::before,
+.glitch-text::after {
+    /* 内容来自 data-text 属性，与主文字相同 */
+    content: attr(data-text);
+
+    /* 绝对定位，覆盖在主文字上 */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    /* 70% 不透明度，让重影效果更自然 */
+    opacity: 0.7;
+}
+
+/**
+ * 第一个重影层（青色）
+ * 模拟 RGB 显示器的蓝色通道偏移
+ */
+.glitch-text::before {
+    color: #0ff;
+    /* 青色 */
+    z-index: 2;
+    /* 在主文字上方 */
+
+    /* 应用故障动画，3秒循环，反向交替 */
+    animation: glitch-anim 3s infinite linear alternate-reverse;
+}
+
+/**
+ * 第二个重影层（品红色）
+ * 模拟 RGB 显示器的红色通道偏移
+ */
+.glitch-text::after {
+    color: #f0f;
+    /* 品红色 */
+    z-index: 1;
+    /* 在第一个重影层下方 */
+
+    /* 应用故障动画，2秒循环（与 before 不同步） */
+    animation: glitch-anim 2s infinite linear alternate-reverse;
+}
+
+/**
+ * 故障动画关键帧
+ * 通过随机的裁剪和倾斜创建故障效果
+ */
+@keyframes glitch-anim {
+
+    /* 0% 时刻：裁剪 24-90px 的区域，轻微倾斜 */
+    0% {
+        clip: rect(24px, 9999px, 90px, 0);
+        transform: skew(0.3deg);
+    }
+
+    /* 20% 时刻：裁剪不同区域 */
+    20% {
+        clip: rect(85px, 9999px, 36px, 0);
+        transform: skew(0.1deg);
+    }
+
+    /* 40% 时刻 */
+    40% {
+        clip: rect(66px, 9999px, 12px, 0);
+        transform: skew(0.5deg);
+    }
+
+    /* 60% 时刻 */
+    60% {
+        clip: rect(10px, 9999px, 58px, 0);
+        transform: skew(0.2deg);
+    }
+
+    /* 80% 时刻 */
+    80% {
+        clip: rect(44px, 9999px, 81px, 0);
+        transform: skew(0.4deg);
+    }
+
+    /* 100% 时刻 */
+    100% {
+        clip: rect(96px, 9999px, 14px, 0);
+        transform: skew(0.1deg);
+    }
+}
+
+/* ========================================
+   频率跳变动画 (Frequency Jump)
+   用于西语标题的信号干扰效果
+   ======================================== */
+
+/**
+ * 频率跳变动画关键帧
+ * 模拟信号不稳定时的跳动和模糊
+ */
+@keyframes frequency-jump {
+
+    /* 0% 和 100%：正常状态 */
+    0%,
+    100% {
+        transform: translateX(0);
+        /* 无位移 */
+        opacity: 0.4;
+        /* 40% 不透明度 */
+        filter: blur(0);
+        /* 无模糊 */
+    }
+
+    /* 7%：第一次跳变 */
+    7% {
+        transform: translateX(-2px) skewX(5deg);
+        /* 左移并倾斜 */
+        opacity: 0.7;
+        /* 变亮 */
+        filter: blur(1px);
+        /* 轻微模糊 */
+    }
+
+    /* 10%：反向跳变 */
+    10% {
+        transform: translateX(2px) skewX(-5deg);
+        /* 右移并反向倾斜 */
+        opacity: 0.4;
+    }
+
+    /* 15%-90%：稳定期 */
+    15%,
+    90% {
+        transform: translateX(0);
+        opacity: 0.4;
+    }
+
+    /* 92%：第二次跳变，变为绿色 */
+    92% {
+        transform: translateX(4px);
+        opacity: 0.8;
+        color: var(--accent);
+        /* 变为强调色 */
+    }
+
+    /* 95%：恢复 */
+    95% {
+        transform: translateX(-4px);
+        opacity: 0.4;
+    }
+}
+
+/**
+ * 协议文字样式
+ * 默认状态下的基础样式
+ */
+.protocol-text {
+    display: inline-block;
+    /* 行内块，可以应用 transform */
+    transition: all 0.2s ease;
+    /* 所有属性平滑过渡 */
+    cursor: default;
+    /* 默认鼠标指针 */
+}
+
+/**
+ * 协议文字悬停效果
+ * 鼠标悬停时激活频率跳变动画
+ */
+.protocol-text:hover {
+    /* 应用频率跳变动画，1秒循环，使用 steps(1) 创建断续的数码感 */
+    animation: frequency-jump 1s infinite steps(1);
+
+    /* 悬停时完全不透明 */
+    opacity: 1 !important;
+}
+
+/* ========================================
+   信号指示器动画 (Signal Bounce)
+   用于信号强度条的跳动效果
+   ======================================== */
+
+/**
+ * 信号跳动动画
+ * 让信号条上下弹跳，模拟信号强度变化
+ */
+@keyframes signal-bounce {
+
+    /* 开始：低信号 */
+    from {
+        height: 20%;
+        /* 高度只有 20% */
+        opacity: 0.4;
+        /* 较暗 */
+    }
+
+    /* 结束：满信号 */
+    to {
+        height: 100%;
+        /* 高度 100% */
+        opacity: 1;
+        /* 完全不透明 */
+    }
+}
+
+/**
+ * 信号指示器容器
+ */
+.signal-indicator {
+    display: flex;
+    /* 弹性布局 */
+    gap: 4px;
+    /* 信号条之间间距 4px */
+    height: 16px;
+    /* 容器高度 */
+    align-items: flex-end;
+    /* 信号条底部对齐 */
+}
+
+/**
+ * 单个信号条
+ */
+.signal-bar {
+    width: 3px;
+    /* 宽度 3px */
+    background: var(--primary);
+    /* 使用主色调 */
+
+    /* 应用信号跳动动画，1秒循环，交替方向 */
+    animation: signal-bounce 1s infinite alternate;
+}
+
+/* ========================================
+   消息淡入动画 (Fade In Up)
+   用于聊天消息出现时的效果
+   ======================================== */
+
+/**
+ * 淡入上移动画
+ * 让新消息从下方淡入并上移
+ */
+@keyframes fade-in-up {
+
+    /* 开始：不可见，位置偏下 */
+    from {
+        opacity: 0;
+        /* 完全透明 */
+        transform: translateY(10px);
+        /* 向下偏移 10px */
+    }
+
+    /* 结束：完全可见，正常位置 */
+    to {
+        opacity: 1;
+        /* 完全不透明 */
+        transform: translateY(0);
+        /* 无偏移 */
+    }
+}
+
+/**
+ * 消息行样式
+ * 应用淡入动画
+ */
+.message-row {
+    display: flex;
+    /* 弹性布局 */
+    flex-direction: column;
+    /* 垂直排列 */
+    margin-bottom: 24px;
+    /* 底部间距 */
+
+    /* 应用淡入上移动画，0.3秒，缓出效果 */
+    animation: fade-in-up 0.3s ease-out;
+}

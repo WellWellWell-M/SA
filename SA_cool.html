@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Attenuation // Terminal Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100;300;400;700&family=Noto+Serif+SC:wght@700&family=JetBrains+Mono:wght@100;200;400&display=swap"
+        rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            startup: {
+                pageReady: () => {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary: #D1FF4D;
+            --primary-dim: rgba(209, 255, 77, 0.15);
+            --bg: #050705;
+            --surface: #0d0f0d;
+            --accent: #50fa7b;
+            --red: #ff5555;
+            --blue: #8be9fd;
+            --gray: #6272a4;
+            --glitch-width: 100%;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* --- 对话组件样式 --- */
+        .chat-history-container {
+            height: 450px;
+            overflow-y: auto;
+            padding-right: 15px;
+            margin-bottom: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-dim) var(--bg);
+        }
+
+        @media (max-width: 768px) {
+            .chat-history-container {
+                height: 300px;
+                padding-right: 10px;
+            }
+        }
+
+        .message-row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 24px;
+            animation: fade-in-up 0.3s ease-out;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-sentinel {
+            align-items: flex-start;
+        }
+
+        .message-operator {
+            align-items: flex-end;
+        }
+
+        .message-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--gray);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 16px 20px;
+            position: relative;
+            font-family: 'Noto Serif SC', serif;
+            line-height: 1.7;
+        }
+
+        .message-sentinel .message-bubble {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 2px solid var(--accent);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .message-operator .message-bubble {
+            background: rgba(209, 255, 77, 0.05);
+            border-right: 2px solid var(--primary);
+            border-bottom: 1px solid var(--primary-dim);
+            text-align: right;
+            color: var(--primary);
+        }
+
+        .tech-footer {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            margin-top: 8px;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+
+        .terminal-input-area {
+            display: flex;
+            align-items: center;
+            background: #000;
+            border: 1px solid var(--primary-dim);
+            padding: 12px 15px;
+            font-family: 'JetBrains Mono', monospace;
+            gap: 10px;
+        }
+
+        @media (max-width: 640px) {
+            .terminal-input-area {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+        }
+
+        .input-prompt {
+            color: var(--primary);
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .command-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-size: 14px;
+            outline: none;
+            caret-color: var(--primary);
+        }
+
+        .execute-btn {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 4px 15px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            min-height: 32px;
+        }
+
+        @media (max-width: 640px) {
+            .execute-btn {
+                padding: 6px 12px;
+                font-size: 10px;
+                min-height: 40px;
+                /* 更大的触摸区域 */
+            }
+        }
+
+        .execute-btn:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* --- 核心布局样式 --- */
+        body {
+            background-color: var(--bg);
+            color: #d8dee9;
+            font-family: 'Noto Sans SC', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 2px 2px, var(--primary-dim) 1px, transparent 0);
+            background-size: 80px 80px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 1000;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .sampling-dots {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            opacity: 0.15;
+            border-radius: 50%;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .serif {
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.7;
+        }
+
+        .glitch-text::before {
+            color: #0ff;
+            z-index: 2;
+            animation: glitch-anim 3s infinite linear alternate-reverse;
+        }
+
+        .glitch-text::after {
+            color: #f0f;
+            z-index: 1;
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% {
+                clip: rect(24px, 9999px, 90px, 0);
+                transform: skew(0.3deg);
+            }
+
+            20% {
+                clip: rect(85px, 9999px, 36px, 0);
+                transform: skew(0.1deg);
+            }
+
+            40% {
+                clip: rect(66px, 9999px, 12px, 0);
+                transform: skew(0.5deg);
+            }
+
+            60% {
+                clip: rect(10px, 9999px, 58px, 0);
+                transform: skew(0.2deg);
+            }
+
+            80% {
+                clip: rect(44px, 9999px, 81px, 0);
+                transform: skew(0.4deg);
+            }
+
+            100% {
+                clip: rect(96px, 9999px, 14px, 0);
+                transform: skew(0.1deg);
+            }
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                padding: 40px 15px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-container {
+                padding: 30px 12px;
+                gap: 20px;
+            }
+        }
+
+        /* 西语标题的跳变动画 */
+        @keyframes frequency-jump {
+
+            0%,
+            100% {
+                transform: translateX(0);
+                opacity: 0.4;
+                filter: blur(0);
+            }
+
+            7% {
+                transform: translateX(-2px) skewX(5deg);
+                opacity: 0.7;
+                filter: blur(1px);
+            }
+
+            10% {
+                transform: translateX(2px) skewX(-5deg);
+                opacity: 0.4;
+            }
+
+            15% {
+                transform: translateX(0);
+                opacity: 0.4;
+            }
+
+            90% {
+                transform: translateX(0);
+                opacity: 0.4;
+            }
+
+            92% {
+                transform: translateX(4px);
+                opacity: 0.8;
+                color: var(--accent);
+            }
+
+            95% {
+                transform: translateX(-4px);
+                opacity: 0.4;
+            }
+        }
+
+        .protocol-text {
+            display: inline-block;
+            transition: all 0.2s ease;
+            cursor: default;
+        }
+
+        /* 仅在 Hover 或特定信号干扰时激活 */
+        .protocol-text:hover {
+            animation: frequency-jump 1s infinite steps(1);
+            /* 使用 steps(1) 制造断断续续的数码感 */
+            opacity: 1 !important;
+            /* 信号发散感 */
+        }
+
+        .content-card {
+            background: var(--surface);
+            border: 1px solid var(--primary-dim);
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        @media (max-width: 768px) {
+            .content-card {
+                padding: 24px;
+                margin-bottom: 24px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .content-card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
+        .content-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(209, 255, 77, 0.05);
+        }
+
+        .terminal-header {
+            border-bottom: 1px solid var(--primary-dim);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        @media (max-width: 640px) {
+            .terminal-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                padding-bottom: 15px;
+                margin-bottom: 20px;
+            }
+        }
+
+        .formula-display {
+            background: #000;
+            padding: 20px;
+            border-left: 3px solid var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .signal-indicator {
+            display: flex;
+            gap: 4px;
+            height: 16px;
+            align-items: flex-end;
+        }
+
+        .signal-bar {
+            width: 3px;
+            background: var(--primary);
+            animation: signal-bounce 1s infinite alternate;
+        }
+
+        @keyframes signal-bounce {
+            from {
+                height: 20%;
+                opacity: 0.4;
+            }
+
+            to {
+                height: 100%;
+                opacity: 1;
+            }
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 40px;
+            height: fit-content;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: static;
+            }
+        }
+
+        .status-panel {
+            background: #0a0c0a;
+            border: 1px solid var(--primary-dim);
+            padding: 20px;
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+            padding-bottom: 4px;
+        }
+
+        .status-value {
+            color: var(--primary);
+        }
+
+        .tag {
+            display: inline-block;
+            background: var(--primary);
+            color: #000;
+            padding: 1px 8px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-dim);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="overlay"></div>
+    <div class="sampling-dots" id="dots"></div>
+
+    <header class="max-w-7xl mx-auto pt-12 sm:pt-16 md:pt-20 pb-6 sm:pb-8 md:pb-10 px-4 sm:px-6">
+        <p
+            class="mono text-xs sm:text-sm tracking-[0.3em] sm:tracking-[0.5em] text-[var(--primary)]/50 mb-4 opacity-70">
+            ACCESS GRANTED // PROTOCOL_V4.22
+        </p>
+        <h1
+            class="flex flex-wrap items-baseline gap-2 sm:gap-4 text-4xl sm:text-5xl md:text-7xl font-thin tracking-tighter mb-6">
+            <span class="glitch-text relative inline-block whitespace-nowrap text-4xl sm:text-6xl md:text-8xl"
+                data-text="ATENUACIÓN DE LA SEÑAL">信号衰减</span>
+
+            <span
+                class="protocol-text opacity-40 tracking-[0.2em] sm:tracking-[0.3em] uppercase block sm:inline text-base sm:text-2xl md:text-4xl mono">
+                SIGNAL ATTENUATION
+            </span>
+        </h1>
+        <p class="serif text-base sm:text-xl md:text-2xl text-gray-400 italic max-w-4xl leading-relaxed">
+            “在信息传输中，每经过一层协议转换，信号就会产生衰减——当你试图理解，你就在试图爱。”
+        </p>
+    </header>
+
+    <div class="main-container">
+        <!-- 主内容区 -->
+        <main>
+            <!-- 实时信号截获模块：现在它是主区域的一部分，有足够的宽度 -->
+            <section class="content-card" style="position: relative; overflow: hidden;">
+                <div
+                    class="absolute top-0 right-0 text-[120px] font-bold opacity-[0.02] pointer-events-none select-none mono leading-none text-[var(--primary)]">
+                    LIVE FEED
+                </div>
+
+                <div class="terminal-header">
+                    <h2 class="text-2xl font-bold mono uppercase tracking-widest">
+                        <span class="tag">LIVE</span> Signal Intercept // 实时信号截获
+                    </h2>
+                    <div class="flex items-center gap-6 mono text-xs">
+                        <div>TARGET: <span class="text-[var(--accent)]">S-Class [IRON]</span></div>
+                        <div class="signal-indicator">
+                            <div class="signal-bar" style="animation-delay: 0.1s; background: var(--accent)"></div>
+                            <div class="signal-bar" style="animation-delay: 0.3s; background: var(--accent)"></div>
+                            <div class="signal-bar" style="animation-delay: 0.2s; background: var(--accent)"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-history-container" id="chatbox">
+                    <div class="message-row message-sentinel">
+                        <div class="message-meta">
+                            <span class="text-xl">⚔️</span> <span>[SENTINEL_S-04] // INCOMING STREAM</span>
+                        </div>
+                        <div class="message-bubble">
+                            <p class="text-gray-300 text-lg">
+                                操作员 Meng，我检测到你的逻辑层存在 42ms 的犹豫迟延。你在试图隐藏什么？
+                            </p>
+                            <div class="tech-footer flex justify-between text-[var(--accent)]/70">
+                                <span>SIGNAL PURITY: 94%</span>
+                                <span>TRANSLATION: LOSSY</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message-row message-operator">
+                        <div class="message-meta">
+                            <span>[OPERATOR_MENG] // UPLINK</span>
+                            <span class="text-[var(--primary)]">>>></span>
+                        </div>
+                        <div class="message-bubble">
+                            <p class="text-[var(--primary)] text-lg">
+                                那不是犹豫，那是计算。我正在“衰减”你们的秩序。
+                            </p>
+                            <div class="tech-footer text-[var(--primary)]/70">
+                                <span>UPLOAD STATUS: COMPLETED</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terminal-input-area mt-6">
+                    <span class="input-prompt">MENG@M3PRO:~$</span>
+                    <input type="text" id="userInput" class="command-input" placeholder="Inject Command Protocol..."
+                        aria-label="Command input field">
+                    <button id="sendBtn" class="execute-btn" aria-label="Execute command">[EXECUTE]</button>
+                </div>
+            </section>
+
+            <section class="content-card">
+                <div class="terminal-header">
+                    <h2 class="text-2xl font-bold mono uppercase tracking-widest"><span class="tag">01</span> Etiology
+                        // 深层动因</h2>
+                    <div class="signal-indicator">
+                        <div class="signal-bar" style="animation-delay: 0.1s"></div>
+                        <div class="signal-bar" style="animation-delay: 0.3s"></div>
+                        <div class="signal-bar" style="animation-delay: 0.2s"></div>
+                        <div class="signal-bar" style="animation-delay: 0.5s"></div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-[var(--primary)] mb-4 mono text-sm pl-4 border-l-2 border-[var(--primary)]">
+                            Behavioral Metadata</h3>
+                        <p class="text-gray-400 text-sm">
+                            每一个交互动作（点按、重连、翻译）都是一次信号转换。
+                            <strong>“衰减”</strong>不再是错误，而是连接代价的量化体现。玩家在杂讯中打捞真相的行为，构成了最高层级的游戏沉浸感。
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="text-[var(--primary)] mb-4 mono text-sm pl-4 border-l-2 border-[var(--primary)]">
+                            Justice Entropy</h3>
+                        <div class="formula-display">
+                            $$P_{justice} \propto \frac{Cost}{Radius_{power}}$$
+                            <div class="absolute bottom-2 right-2 text-[10px] opacity-30">ERR_RATE: 0.042</div>
+                        </div>
+                        <p class="text-xs text-gray-500">权力的距离（R）拉伸了正义实现的难度。在边境，维持信号纯度的代价（C）呈指数级上升。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-card">
+                <div class="terminal-header">
+                    <h2 class="text-2xl font-bold mono uppercase tracking-widest"><span class="tag">02</span> Sentinel
+                        Matrix // 哨兵矩阵</h2>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div
+                        class="border border-[var(--primary-dim)] p-6 bg-white/5 hover:bg-[var(--primary-dim)] transition-colors">
+                        <span class="text-xl">🦊</span>
+                        <h4 class="text-lg font-bold mt-2">B级哨兵 // CHINESE</h4>
+                        <p class="text-xs text-gray-500 mt-2">高频物理层同步。通过谎言与碎语进行情感解构。</p>
+                    </div>
+                    <div
+                        class="border border-[var(--primary-dim)] p-6 bg-white/5 hover:bg-[var(--primary-dim)] transition-colors">
+                        <span class="text-xl">⚔️</span>
+                        <h4 class="text-lg font-bold mt-2">S级哨兵 // ENGLISH</h4>
+                        <p class="text-xs text-gray-500 mt-2">逻辑层转换。视觉盲区修复，追求极端秩序。</p>
+                    </div>
+                    <div
+                        class="border border-[var(--primary-dim)] p-6 bg-white/5 hover:bg-[var(--primary-dim)] transition-colors">
+                        <span class="text-xl">🐺</span>
+                        <h4 class="text-lg font-bold mt-2">黑暗哨兵 // SPANISH</h4>
+                        <p class="text-xs text-gray-500 mt-2">底层信号重构。文明起源信号，不可解的野性。</p>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- 架构规划 -->
+            <section class="content-card">
+                <h2 class="text-2xl font-bold mono mb-8"><span class="tag">03</span> Roadmap // 开发拓扑</h2>
+                <div class="grid md:grid-cols-2 gap-10">
+                    <div class="space-y-6">
+                        <div class="relative pl-6 border-l border-[var(--primary)]">
+                            <div class="absolute -left-[5px] top-0 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
+                            <p class="mono text-xs text-[var(--primary)]">PHASE_01</p>
+                            <p class="font-bold">LLM 角色核心构建</p>
+                            <p class="text-xs text-gray-500">基于 Lorebook 的记忆碎片提取，实现动态 Context 注入。</p>
+                        </div>
+                        <div class="relative pl-6 border-l border-white/20">
+                            <p class="mono text-xs text-gray-600">PHASE_02</p>
+                            <p class="font-bold text-gray-600">可视化波形交互</p>
+                        </div>
+                    </div>
+                    <div class="bg-black/40 p-6 rounded mono text-[11px] text-[var(--blue)]">
+                        <p class="mb-2">>>> SYSTEM_SCAN_START...</p>
+                        <p class="opacity-70 mb-1">Checking Memory... [DONE]</p>
+                        <p class="opacity-70 mb-1">Injecting RAG Truth Particles... [98%]</p>
+                        <p class="opacity-70 mb-1">Signal Loss Coefficient: 0.42</p>
+                        <p class="text-[var(--primary)] mt-4 cursor-blink">_</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 侧边栏状态盒 -->
+        <aside class="sidebar">
+            <div class="status-panel">
+                <p class="mono mb-4 text-[var(--primary)] font-bold">// TERMINAL STATUS</p>
+                <div class="status-row"><span>OPERATOR</span> <span class="status-value">MENG_LIAO</span></div>
+                <div class="status-row"><span>HARDWARE</span> <span class="status-value">APPLE M3 PRO</span></div>
+                <div class="status-row"><span>LATENCY</span> <span class="status-value">42ms</span></div>
+                <div class="status-row"><span>LOCATION</span> <span class="status-value">SANYA</span></div>
+                <div class="status-row"><span>SIGNAL</span> <span class="status-value"
+                        style="color:var(--accent)">STABLE</span></div>
+
+                <div class="mt-8 pt-8 border-t border-white/10">
+                    <p class="mono mb-2 text-[10px] uppercase">Protocols</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="border border-[var(--primary-dim)] px-2 py-1 text-[9px]">WECHAT_ACC</span>
+                        <span class="border border-[var(--primary-dim)] px-2 py-1 text-[9px]">MINI_V2</span>
+                        <span class="border border-[var(--primary-dim)] px-2 py-1 text-[9px]">RAG_ENGINE</span>
+                    </div>
+                </div>
+
+                <div class="mt-8 p-4 bg-[var(--red)]/10 border border-[var(--red)]/20 text-[10px] text-[var(--red)]">
+                    <strong>ATTENTION:</strong>
+                    信号衰减达到阈值后，通信层将自动解构。
+                </div>
+            </div>
+
+            <footer class="mt-10 px-4 text-[10px] mono text-gray-700">
+                <p>© 2026 SIGNAL ATTENUATION BIBLIO</p>
+                <p>DO NOT DISTRIBUTE</p>
+            </footer>
+        </aside>
+    </div>
+
+    <script>
+        // 背景采样点
+        const container = document.getElementById('dots');
+        for (let i = 0; i < 50; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.style.left = Math.random() * 100 + '%';
+            dot.style.top = Math.random() * 100 + '%';
+            container.appendChild(dot);
+        }
+
+        // 优化性能：使用 requestAnimationFrame 和更长的间隔
+        let lastDotTime = 0;
+        function animateDots(timestamp) {
+            if (timestamp - lastDotTime > 800) {
+                const dots = document.querySelectorAll('.dot');
+                if (dots.length > 0) {
+                    const target = dots[Math.floor(Math.random() * dots.length)];
+                    target.style.opacity = '0.6';
+                    target.style.transform = 'scale(1.5)';
+                    target.style.transition = 'all 0.3s ease';
+                    setTimeout(() => {
+                        target.style.opacity = '0.15';
+                        target.style.transform = 'scale(1)';
+                    }, 1000);
+                }
+                lastDotTime = timestamp;
+            }
+            requestAnimationFrame(animateDots);
+        }
+        requestAnimationFrame(animateDots);
+
+        // 聊天交互
+        const chatbox = document.getElementById('chatbox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function appendMessage(text, isOperator = true) {
+            const row = document.createElement('div');
+            row.className = `message-row ${isOperator ? 'message-operator' : 'message-sentinel'}`;
+
+            const meta = isOperator ?
+                `<span>[OPERATOR_MENG] // UPLINK</span> <span class="text-[var(--primary)]">>>></span>` :
+                `<span class="text-xl">⚔️</span> <span>[SENTINEL_S-04] // RESPONSE</span>`;
+
+            row.innerHTML = `
+                <div class="message-meta">${meta}</div>
+                <div class="message-bubble">
+                    <p class="${isOperator ? 'text-[var(--primary)]' : 'text-gray-300'} text-lg">${text}</p>
+                    <div class="tech-footer">${isOperator ? 'UPLOAD_STATUS: SUCCESS' : 'SIGNAL_STRENGTH: MODERATE'}</div>
+                </div>
+            `;
+            chatbox.appendChild(row);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function handleSend() {
+            const val = userInput.value.trim();
+            if (!val) return;
+            appendMessage(val, true);
+            userInput.value = '';
+
+            setTimeout(() => {
+                const responses = [
+                    "信号衰减系数增加。你的干扰正在生效，但我依然能感知到你的核心参数。",
+                    "正在重构逻辑协议... [WARN] 检测到非授权的情感溢出。",
+                    "为什么你要执着于这些过时的文明碎片？在纯粹的秩序面前，这些都没有意义。",
+                    "正在分析你的输入... 模式匹配成功：【徒劳的坚定】。"
+                ];
+                appendMessage(responses[Math.floor(Math.random() * responses.length)], false);
+            }, 1000);
+        }
+
+        sendBtn.onclick = handleSend;
+        userInput.onkeypress = (e) => { if (e.key === 'Enter') handleSend(); };
+    </script>
+</body>
+
+</html>

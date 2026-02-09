@@ -1,0 +1,135 @@
+/**
+ * 基础样式文件
+ * 包含页面的基础设置、重置样式、滚动条样式等
+ * 这些样式是整个网站的基础，会影响所有元素
+ */
+
+/* === CSS 重置 === */
+/* 移除所有元素的默认外边距、内边距，统一盒模型 */
+* {
+    margin: 0;
+    /* 移除外边距 */
+    padding: 0;
+    /* 移除内边距 */
+    box-sizing: border-box;
+    /* 让宽度和高度包含内边距和边框 */
+}
+
+/* === 页面主体样式 === */
+body {
+    /* 背景颜色：使用 CSS 变量中定义的深色背景 */
+    background-color: var(--bg);
+
+    /* 文字颜色：浅灰蓝色，柔和的对比度 */
+    color: #d8dee9;
+
+    /* 字体：使用思源黑体，优雅的中文字体 */
+    font-family: 'Noto Sans SC', sans-serif;
+
+    /* 行高：1.6 倍字体大小，让文字更易读 */
+    line-height: 1.6;
+
+    /* 隐藏横向滚动条，防止页面左右滚动 */
+    overflow-x: hidden;
+
+    /* 背景图案：径向渐变的点状网格 */
+    /* 在每个 2px 位置创建一个小点 */
+    background-image: radial-gradient(circle at 2px 2px, var(--primary-dim) 1px, transparent 0);
+
+    /* 网格大小：每 80px 重复一次 */
+    background-size: 80px 80px;
+}
+
+/* === 屏幕覆盖层效果 === */
+/* 创建类似 CRT 显示器的扫描线效果 */
+.overlay {
+    position: fixed;
+    /* 固定定位，不随页面滚动 */
+    top: 0;
+    /* 顶部对齐 */
+    left: 0;
+    /* 左侧对齐 */
+    width: 100vw;
+    /* 宽度占满整个视口 */
+    height: 100vh;
+    /* 高度占满整个视口 */
+
+    /* 复合背景：横向扫描线 + RGB 色差效果 */
+    background:
+        /* 横向扫描线：每隔一行变暗 */
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        /* RGB 色差：模拟老式显示器的颜色分离 */
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+
+    /* 层级：1000，确保在最上层 */
+    z-index: 1000;
+
+    /* 背景尺寸：扫描线 3px 高 */
+    background-size: 100% 3px, 3px 100%;
+
+    /* 不响应鼠标事件，允许点击穿透 */
+    pointer-events: none;
+}
+
+/* === 背景采样点容器 === */
+.sampling-dots {
+    position: fixed;
+    /* 固定定位 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* 不响应鼠标事件 */
+    z-index: -1;
+    /* 在内容下方 */
+}
+
+/* === 单个采样点样式 === */
+.dot {
+    position: absolute;
+    /* 绝对定位，可以放在任意位置 */
+    width: 4px;
+    /* 宽度 4 像素 */
+    height: 4px;
+    /* 高度 4 像素 */
+    background: var(--primary);
+    /* 使用主色调 */
+    opacity: 0.15;
+    /* 15% 不透明度，非常微妙 */
+    border-radius: 50%;
+    /* 圆形 */
+}
+
+/* === 工具类：等宽字体 === */
+/* 用于代码、终端文本等需要对齐的场景 */
+.mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* === 工具类：衬线字体 === */
+/* 用于引用、正式文本等需要优雅感的场景 */
+.serif {
+    font-family: 'Noto Serif SC', serif;
+}
+
+/* === 自定义滚动条样式（WebKit 浏览器：Chrome, Safari, Edge） === */
+::-webkit-scrollbar {
+    width: 5px;
+    /* 滚动条宽度 */
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+    /* 滚动条轨道背景色 */
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-dim);
+    /* 滚动条滑块颜色 */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+    /* 鼠标悬停时的滑块颜色 */
+}
