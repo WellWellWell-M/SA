@@ -412,6 +412,67 @@
     </div>
 
     <!-- 
+        背景音乐
+        autoplay：页面加载后自动播放
+        loop：循环播放
+        muted：初始静音（某些浏览器要求自动播放必须静音）
+        id="bgMusic"：JavaScript 可以通过这个 ID 控制音乐
+    -->
+    <audio id="bgMusic" autoplay loop muted>
+        <!-- 
+            音频源文件
+            src：音频文件路径
+            type：音频文件类型（MP3 格式）
+        -->
+        <source src="SA.mp3" type="audio/mpeg">
+        <!-- 如果浏览器不支持 audio 标签，显示这段文字 -->
+        您的浏览器不支持音频播放。
+    </audio>
+
+    <!-- 
+        背景音乐控制脚本
+        由于浏览器的自动播放策略，需要用户交互后才能播放声音
+        这段脚本会在用户第一次点击页面时启动音乐
+    -->
+    <script>
+        // 获取音频元素
+        // document.getElementById() 通过 ID 获取页面元素
+        const bgMusic = document.getElementById('bgMusic');
+
+        // 设置音量为 30%（0.3）
+        // volume 属性的值范围是 0.0（静音）到 1.0（最大音量）
+        bgMusic.volume = 0.3;
+
+        // 定义启动音乐的函数
+        function startMusic() {
+            // 取消静音
+            // muted = false 表示不静音，允许播放声音
+            bgMusic.muted = false;
+
+            // 播放音乐
+            // play() 方法返回一个 Promise（承诺）
+            // .catch() 用于捕获可能的错误
+            bgMusic.play().catch(e => {
+                // 如果播放失败，在控制台输出错误信息
+                // 这不会影响页面正常运行
+                console.log('音乐播放失败:', e);
+            });
+
+            // 移除事件监听器
+            // 音乐启动后，不再需要监听点击事件
+            // 这样可以避免重复执行
+            document.removeEventListener('click', startMusic);
+        }
+
+        // 监听用户的第一次点击
+        // addEventListener() 添加事件监听器
+        // 'click' 表示监听点击事件
+        // startMusic 是点击时要执行的函数
+        // { once: true } 表示只执行一次，执行后自动移除监听
+        document.addEventListener('click', startMusic, { once: true });
+    </script>
+
+    <!-- 
         引入 JavaScript 文件
         放在 body 结束前，确保 DOM 元素已经加载完成
     -->
