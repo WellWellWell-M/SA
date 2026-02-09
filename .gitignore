@@ -28,3 +28,6 @@
 # 临时文件
 tmp/
 temp/
+
+# 原始资源文件（保留优化后的版本即可）
+assets/images/*-original.*
