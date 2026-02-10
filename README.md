@@ -6,6 +6,31 @@
 
 ---
 
+## 🔀 部署策略（重要）
+
+本项目采用**双文件策略**，维护两个版本：
+
+- **`index.html`**：完整开发版（包含所有内容和功能）
+- **`index-public.html`**：公开发布版（删减部分私密内容）
+
+### 工作流程
+
+1. **日常开发**：在 `index.html` 中编辑和测试
+2. **准备发布**：
+   - 复制 `index.html` 的内容到 `index-public.html`
+   - 在 `index-public.html` 中删除不想公开的模块/内容
+3. **提交代码**：提交到 `main` 分支
+4. **自动部署**：GitHub Actions 会自动将 `index-public.html` 部署到公开网站
+
+### 注意事项
+
+- ✅ 所有修改都在 `main` 分支的 `index.html` 中进行
+- ✅ `index-public.html` 是手动维护的简化版
+- ✅ 提交后会自动部署，无需手动操作 Git
+- ⚠️ 不要直接在 `public` 分支工作
+
+---
+
 ## 📂 文件结构
 
 ```

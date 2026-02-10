@@ -1,0 +1,71 @@
+name: Deploy Public Version to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # 当 main 分支有新提交时触发
+    paths:
+      - 'index-public.html'  # 只在 index-public.html 更改时触发
+      - 'css/**'
+      - 'js/**'
+      - 'assets/**'
+  workflow_dispatch:  # 允许手动触发
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy-public:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+      
+      - name: Create/Update public branch
+        run: |
+          # 创建或切换到 public 分支
+          git checkout -B public
+          
+          # 将 index-public.html 重命名为 index.html
+          cp index-public.html index.html
+          
+          # 删除 index-public.html（公开版不需要这个文件）
+          git rm -f index-public.html || true
+          
+          # 添加所有更改
+          git add -A
+          
+          # 提交更改
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Deploy public version from main branch"
+            git push origin public --force
+          fi
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
