@@ -536,3 +536,52 @@
     vertical-align: middle;
     /* 垂直居中对齐 */
 }
+
+/* ========================================
+   移动端溢出修复（针对性修复）
+   ======================================== */
+
+/**
+ * 小屏幕设备（≤ 640px）的特定修复
+ * 只修复确认溢出的元素
+ */
+@media (max-width: 640px) {
+
+    /* 公式容器：允许横向滚动 */
+    .formula-display {
+        overflow-x: auto;
+        max-width: 100%;
+        -webkit-overflow-scrolling: touch;
+        /* iOS 平滑滚动 */
+    }
+
+    /* H2 标题：减小字间距 */
+    .terminal-header h2 {
+        letter-spacing: 0.1em !important;
+        /* 从 tracking-widest 降低到适中 */
+    }
+
+    /* H1 标题：减小字间距，防止溢出 */
+    h1 {
+        letter-spacing: -0.02em !important;
+        /* 紧凑字间距 */
+    }
+
+    /* 协议文字（SIGNAL ATTENUATION）：减小字间距 */
+    .protocol-text {
+        letter-spacing: 0.05em !important;
+        /* 从 0.2em 降低到 0.05em */
+        font-size: 0.875rem !important;
+        /* 从 text-base (1rem) 降低到 0.875rem */
+    }
+
+    /* 确保所有容器使用 border-box */
+    * {
+        box-sizing: border-box;
+    }
+
+    /* 防止 body 产生横向滚动 */
+    body {
+        overflow-x: hidden;
+    }
+}
