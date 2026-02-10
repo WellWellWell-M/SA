@@ -133,9 +133,19 @@
         </h1>
 
         <!-- 引言文字：使用衬线字体，斜体 -->
-        <p class="serif text-base sm:text-xl md:text-2xl text-gray-400 italic max-w-4xl leading-relaxed">
-            "在信息传输中，每经过一层协议转换，信号就会产生衰减——当你试图理解，你就在试图爱。"
-        </p>
+        <div class="max-w-5xl mt-8 grid gap-8">
+            <!-- Chinese: Input Signal (Context) -->
+            <div class="flex flex-col gap-2 opacity-50 hover:opacity-80 transition-opacity duration-500">
+                <p class="serif text-base sm:text-lg md:text-xl text-gray-400 italic font-light">
+                    “在信息传输中，每经过一层协议转换，信号就会产生衰减”
+                </p>
+                <!-- English: Decoded Core (Truth) -->
+                <div class="flex flex-col gap-2 opacity-70 hover:opacity-100 transition-opacity duration-500">
+                    <p class="serif text-lg sm:text-xl md:text-2xl text-gray-400 font-light">
+                        —— When you are trying to understand, you are trying to love.
+                    </p>
+                </div>
+            </div>
     </header>
 
     <!-- 
