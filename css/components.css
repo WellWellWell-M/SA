@@ -439,20 +439,6 @@
     /* 上下外边距 */
     position: relative;
     /* 相对定位 */
-    overflow-x: auto;
-    /* 允许横向滚动，防止公式溢出 */
-    max-width: 100%;
-    /* 最大宽度不超过父容器 */
-}
-
-/**
- * 移动端适配：减小公式区域的内边距
- */
-@media (max-width: 640px) {
-    .formula-display {
-        padding: 15px;
-        /* 减小内边距以节省空间 */
-    }
 }
 
 /* ========================================
@@ -549,35 +535,4 @@
     /* 右侧外边距 */
     vertical-align: middle;
     /* 垂直居中对齐 */
-}
-
-/* ========================================
-   移动端全局修复
-   ======================================== */
-
-/**
- * 确保所有元素不超出视口宽度
- */
-@media (max-width: 640px) {
-
-    /* 防止所有容器溢出 */
-    * {
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-    /* 确保 body 不产生横向滚动 */
-    body {
-        overflow-x: hidden;
-    }
-
-    /* 哨兵矩阵：强制单列布局 */
-    .grid.md\:grid-cols-3 {
-        grid-template-columns: 1fr !important;
-    }
-
-    /* 两列网格：强制单列布局 */
-    .grid.md\:grid-cols-2 {
-        grid-template-columns: 1fr !important;
-    }
 }
