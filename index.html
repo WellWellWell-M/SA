@@ -181,8 +181,8 @@
                         <span class="tag">LIVE</span> Signal Intercept // 实时信号截获
                     </h2>
                     <!-- 右侧信息：目标和信号指示器 -->
-                    <div class="flex items-center gap-6 mono text-xs">
-                        <div>TARGET: <span class="text-[var(--accent)]">S-Class [IRON]</span></div>
+                    <div class="items-center gap-6 mono text-xs">
+                        <div>TARGET: <span class="text-[var(--accent)]">B-Class</span></div>
                         <!-- 
                             信号强度指示器
                             三个信号条，通过不同的 animation-delay 创建错落的跳动效果
@@ -205,12 +205,12 @@
                     <div class="message-row message-sentinel">
                         <!-- 消息元信息：发送者和图标 -->
                         <div class="message-meta">
-                            <span class="text-xl">⚔️</span> <span>[SENTINEL_S-04] // INCOMING STREAM</span>
+                            <span class="text-xl">⚔️</span> <span>[SENTINEL_B147] // INCOMING STREAM</span>
                         </div>
                         <!-- 消息气泡：包含实际消息内容 -->
                         <div class="message-bubble">
                             <p class="text-gray-300 text-lg">
-                                操作员 Meng，我检测到你的逻辑层存在 42ms 的犹豫迟延。你在试图隐藏什么？
+                                哨兵B147，请求连接向导。
                             </p>
                             <!-- 技术页脚：显示信号纯度等技术信息 -->
                             <div class="tech-footer flex justify-between text-[var(--accent)]/70">
@@ -223,15 +223,14 @@
                     <!-- 操作员消息（用户的消息，右对齐） -->
                     <div class="message-row message-operator">
                         <div class="message-meta">
-                            <span>[OPERATOR_MENG] // UPLINK</span>
+                            <span>[OPERATOR_UNKNOWN] // UPLINK</span>
                             <span class="text-[var(--primary)]">>>></span>
                         </div>
                         <div class="message-bubble">
                             <p class="text-[var(--primary)] text-lg">
-                                那不是犹豫，那是计算。我正在"衰减"你们的秩序。
-                            </p>
+                                正在输入……
                             <div class="tech-footer text-[var(--primary)]/70">
-                                <span>UPLOAD STATUS: COMPLETED</span>
+                                <span>UPLOADING...</span>
                             </div>
                         </div>
                     </div>
@@ -243,7 +242,7 @@
                 -->
                 <div class="terminal-input-area mt-6">
                     <!-- 终端提示符 -->
-                    <span class="input-prompt">MENG@M3PRO:~$</span>
+                    <span class="input-prompt">GUIDE@STATION:~$</span>
 
                     <!-- 
                         命令输入框
