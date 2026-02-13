@@ -226,59 +226,45 @@
                 </div>
             </section>
 
-            <!-- ========== Etiology 模块：深层动因 ========== -->
+
+
+            <!-- ========== Roadmap 模块：开发拓扑 ========== -->
             <section class="content-card">
-                <div class="terminal-header">
-                    <h2 class="text-2xl font-bold mono uppercase tracking-widest">
-                        <span class="tag">01</span> Etiology // 深层动因
-                    </h2>
-                    <!-- 信号指示器：四个信号条 -->
-                    <div class="signal-indicator">
-                        <div class="signal-bar" style="animation-delay: 0.1s"></div>
-                        <div class="signal-bar" style="animation-delay: 0.3s"></div>
-                        <div class="signal-bar" style="animation-delay: 0.2s"></div>
-                        <div class="signal-bar" style="animation-delay: 0.5s"></div>
+                <h2 class="text-2xl font-bold mono mb-8">
+                    <span class="tag">03</span> Roadmap // 开发拓扑
+                </h2>
+
+                <!-- 两列布局：左侧时间线，右侧终端输出 -->
+                <div class="grid md:grid-cols-2 gap-10">
+                    <!-- 左列：开发阶段时间线 -->
+                    <div class="space-y-6">
+                        <!-- Phase 01：已完成 -->
+                        <div class="relative pl-6 border-l border-[var(--primary)]">
+                            <!-- 时间线圆点 -->
+                            <div class="absolute -left-[5px] top-0 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
+                            <p class="mono text-xs text-[var(--primary)]">PHASE_01</p>
+                            <p class="font-bold">LLM 角色核心构建</p>
+                            <p class="text-xs text-gray-500">基于 Lorebook 的记忆碎片提取，实现动态 Context 注入。</p>
+                        </div>
+
+                        <!-- Phase 02：未完成 -->
+                        <div class="relative pl-6 border-l border-white/20">
+                            <p class="mono text-xs text-gray-600">PHASE_02</p>
+                            <p class="font-bold text-gray-600">可视化波形交互</p>
+                        </div>
+                    </div>
+
+                    <!-- 右列：系统扫描终端输出 -->
+                    <div class="bg-black/40 p-6 rounded mono text-[11px] text-[var(--blue)]">
+                        <p class="mb-2">>>>> SYSTEM_SCAN_START...</p>
+                        <p class="opacity-70 mb-1">Checking Memory... [DONE]</p>
+                        <p class="opacity-70 mb-1">Injecting RAG Truth Particles... [98%]</p>
+                        <p class="opacity-70 mb-1">Signal Loss Coefficient: 0.42</p>
+                        <!-- 闪烁的光标 -->
+                        <p class="text-[var(--primary)] mt-4 cursor-blink">_</p>
                     </div>
                 </div>
-
-
-                <!-- ========== Roadmap 模块：开发拓扑 ========== -->
-                <section class="content-card">
-                    <h2 class="text-2xl font-bold mono mb-8">
-                        <span class="tag">03</span> Roadmap // 开发拓扑
-                    </h2>
-
-                    <!-- 两列布局：左侧时间线，右侧终端输出 -->
-                    <div class="grid md:grid-cols-2 gap-10">
-                        <!-- 左列：开发阶段时间线 -->
-                        <div class="space-y-6">
-                            <!-- Phase 01：已完成 -->
-                            <div class="relative pl-6 border-l border-[var(--primary)]">
-                                <!-- 时间线圆点 -->
-                                <div class="absolute -left-[5px] top-0 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
-                                <p class="mono text-xs text-[var(--primary)]">PHASE_01</p>
-                                <p class="font-bold">LLM 角色核心构建</p>
-                                <p class="text-xs text-gray-500">基于 Lorebook 的记忆碎片提取，实现动态 Context 注入。</p>
-                            </div>
-
-                            <!-- Phase 02：未完成 -->
-                            <div class="relative pl-6 border-l border-white/20">
-                                <p class="mono text-xs text-gray-600">PHASE_02</p>
-                                <p class="font-bold text-gray-600">可视化波形交互</p>
-                            </div>
-                        </div>
-
-                        <!-- 右列：系统扫描终端输出 -->
-                        <div class="bg-black/40 p-6 rounded mono text-[11px] text-[var(--blue)]">
-                            <p class="mb-2">>>>> SYSTEM_SCAN_START...</p>
-                            <p class="opacity-70 mb-1">Checking Memory... [DONE]</p>
-                            <p class="opacity-70 mb-1">Injecting RAG Truth Particles... [98%]</p>
-                            <p class="opacity-70 mb-1">Signal Loss Coefficient: 0.42</p>
-                            <!-- 闪烁的光标 -->
-                            <p class="text-[var(--primary)] mt-4 cursor-blink">_</p>
-                        </div>
-                    </div>
-                </section>
+            </section>
         </main>
 
         <!-- ========== 侧边栏：状态面板 ========== -->
