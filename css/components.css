@@ -58,6 +58,8 @@
 .message-operator {
     align-items: flex-end;
     /* 内容右对齐 */
+    animation: none;
+    /* 禁用淡入动画 */
 }
 
 /**
@@ -162,14 +164,38 @@
     /* 垂直居中 */
     background: #000;
     /* 纯黑背景 */
-    border: 1px solid var(--primary-dim);
-    /* 主色调边框 */
+    border: 1px solid var(--gray);
+    /* 默认灰色边框 */
     padding: 12px 15px;
     /* 内边距 */
     font-family: 'JetBrains Mono', monospace;
     /* 等宽字体 */
     gap: 10px;
     /* 元素间距 */
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+/**
+ * 输入激活状态
+ * 当轮到向导输入时，颜色变灰
+ */
+.terminal-input-area.input-active {
+    border-color: var(--primary);
+}
+
+.terminal-input-area.input-active .input-prompt,
+.terminal-input-area.input-active .command-input {
+    color: var(--primary);
+}
+
+.terminal-input-area.input-active .execute-btn {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.terminal-input-area.input-active .execute-btn:hover {
+    background: var(--primary);
+    color: #000;
 }
 
 /**
@@ -190,12 +216,13 @@
  * 显示类似 "MENG@M3PRO:~$" 的终端提示符
  */
 .input-prompt {
-    color: var(--primary);
-    /* 主色调文字 */
+    color: var(--gray);
+    /* 默认灰色文字 */
     font-weight: bold;
     /* 粗体 */
     white-space: nowrap;
     /* 不换行 */
+    transition: color 0.3s ease;
 }
 
 /**
@@ -209,14 +236,15 @@
     /* 透明背景 */
     border: none;
     /* 无边框 */
-    color: var(--primary);
-    /* 主色调文字 */
+    color: var(--gray);
+    /* 默认灰色文字 */
     font-size: 14px;
     /* 字体大小 */
     outline: none;
     /* 移除聚焦时的轮廓 */
     caret-color: var(--primary);
     /* 光标颜色 */
+    transition: color 0.3s ease;
 }
 
 /**
@@ -226,10 +254,10 @@
 .execute-btn {
     background: transparent;
     /* 透明背景 */
-    border: 1px solid var(--primary);
-    /* 主色调边框 */
-    color: var(--primary);
-    /* 主色调文字 */
+    border: 1px solid var(--gray);
+    /* 默认灰色边框 */
+    color: var(--gray);
+    /* 默认灰色文字 */
     padding: 4px 15px;
     /* 内边距 */
     font-size: 11px;

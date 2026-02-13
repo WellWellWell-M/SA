@@ -182,7 +182,7 @@
                     </h2>
                     <!-- 右侧信息：目标和信号指示器 -->
                     <div class="flex items-center gap-6 mono text-xs">
-                        <div>TARGET: <span class="text-[var(--accent)]">S-Class [IRON]</span></div>
+                        <div>TARGET: <span class="text-[var(--accent)]">?_Class</span></div>
                         <!-- 
                             信号强度指示器
                             三个信号条，通过不同的 animation-delay 创建错落的跳动效果
@@ -195,46 +195,13 @@
                     </div>
                 </div>
 
-                <!-- 
+                <!--
                     聊天历史记录容器
                     id="chatbox"：JavaScript 通过这个 ID 来操作这个元素
-                    包含两条预设的对话消息
+                    Phase 0 会自动填充初始消息
                 -->
                 <div class="chat-history-container" id="chatbox">
-                    <!-- 哨兵消息（AI 的消息，左对齐） -->
-                    <div class="message-row message-sentinel">
-                        <!-- 消息元信息：发送者和图标 -->
-                        <div class="message-meta">
-                            <span class="text-xl">⚔️</span> <span>[SENTINEL_S-04] // INCOMING STREAM</span>
-                        </div>
-                        <!-- 消息气泡：包含实际消息内容 -->
-                        <div class="message-bubble">
-                            <p class="text-gray-300 text-lg">
-                                操作员 Meng，我检测到你的逻辑层存在 42ms 的犹豫迟延。你在试图隐藏什么？
-                            </p>
-                            <!-- 技术页脚：显示信号纯度等技术信息 -->
-                            <div class="tech-footer flex justify-between text-[var(--accent)]/70">
-                                <span>SIGNAL PURITY: 94%</span>
-                                <span>TRANSLATION: LOSSY</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 操作员消息（用户的消息，右对齐） -->
-                    <div class="message-row message-operator">
-                        <div class="message-meta">
-                            <span>[OPERATOR_MENG] // UPLINK</span>
-                            <span class="text-[var(--primary)]">>>></span>
-                        </div>
-                        <div class="message-bubble">
-                            <p class="text-[var(--primary)] text-lg">
-                                那不是犹豫，那是计算。我正在"衰减"你们的秩序。
-                            </p>
-                            <div class="tech-footer text-[var(--primary)]/70">
-                                <span>UPLOAD STATUS: COMPLETED</span>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Phase 0 消息将在这里自动生成 -->
                 </div>
 
                 <!-- 
@@ -243,7 +210,7 @@
                 -->
                 <div class="terminal-input-area mt-6">
                     <!-- 终端提示符 -->
-                    <span class="input-prompt">MENG@M3PRO:~$</span>
+                    <span class="input-prompt">GUIDE@STATION:~$</span>
 
                     <!-- 
                         命令输入框
@@ -259,44 +226,59 @@
                 </div>
             </section>
 
-
-            <!-- ========== Roadmap 模块：开发拓扑 ========== -->
+            <!-- ========== Etiology 模块：深层动因 ========== -->
             <section class="content-card">
-                <h2 class="text-2xl font-bold mono mb-8">
-                    <span class="tag">00</span> Roadmap // 开发拓扑
-                </h2>
-
-                <!-- 两列布局：左侧时间线，右侧终端输出 -->
-                <div class="grid md:grid-cols-2 gap-10">
-                    <!-- 左列：开发阶段时间线 -->
-                    <div class="space-y-6">
-                        <!-- Phase 01：已完成 -->
-                        <div class="relative pl-6 border-l border-[var(--primary)]">
-                            <!-- 时间线圆点 -->
-                            <div class="absolute -left-[5px] top-0 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
-                            <p class="mono text-xs text-[var(--primary)]">PHASE_01</p>
-                            <p class="font-bold">LLM 角色核心构建</p>
-                            <p class="text-xs text-gray-500">基于 Lorebook 的记忆碎片提取，实现动态 Context 注入。</p>
-                        </div>
-
-                        <!-- Phase 02：未完成 -->
-                        <div class="relative pl-6 border-l border-white/20">
-                            <p class="mono text-xs text-gray-600">PHASE_02</p>
-                            <p class="font-bold text-gray-600">可视化波形交互</p>
-                        </div>
-                    </div>
-
-                    <!-- 右列：系统扫描终端输出 -->
-                    <div class="bg-black/40 p-6 rounded mono text-[11px] text-[var(--blue)]">
-                        <p class="mb-2">>>>> SYSTEM_SCAN_START...</p>
-                        <p class="opacity-70 mb-1">Checking Memory... [DONE]</p>
-                        <p class="opacity-70 mb-1">Injecting RAG Truth Particles... [98%]</p>
-                        <p class="opacity-70 mb-1">Signal Loss Coefficient: 0.42</p>
-                        <!-- 闪烁的光标 -->
-                        <p class="text-[var(--primary)] mt-4 cursor-blink">_</p>
+                <div class="terminal-header">
+                    <h2 class="text-2xl font-bold mono uppercase tracking-widest">
+                        <span class="tag">01</span> Etiology // 深层动因
+                    </h2>
+                    <!-- 信号指示器：四个信号条 -->
+                    <div class="signal-indicator">
+                        <div class="signal-bar" style="animation-delay: 0.1s"></div>
+                        <div class="signal-bar" style="animation-delay: 0.3s"></div>
+                        <div class="signal-bar" style="animation-delay: 0.2s"></div>
+                        <div class="signal-bar" style="animation-delay: 0.5s"></div>
                     </div>
                 </div>
-            </section>
+
+
+                <!-- ========== Roadmap 模块：开发拓扑 ========== -->
+                <section class="content-card">
+                    <h2 class="text-2xl font-bold mono mb-8">
+                        <span class="tag">03</span> Roadmap // 开发拓扑
+                    </h2>
+
+                    <!-- 两列布局：左侧时间线，右侧终端输出 -->
+                    <div class="grid md:grid-cols-2 gap-10">
+                        <!-- 左列：开发阶段时间线 -->
+                        <div class="space-y-6">
+                            <!-- Phase 01：已完成 -->
+                            <div class="relative pl-6 border-l border-[var(--primary)]">
+                                <!-- 时间线圆点 -->
+                                <div class="absolute -left-[5px] top-0 w-2 h-2 bg-[var(--primary)] rounded-full"></div>
+                                <p class="mono text-xs text-[var(--primary)]">PHASE_01</p>
+                                <p class="font-bold">LLM 角色核心构建</p>
+                                <p class="text-xs text-gray-500">基于 Lorebook 的记忆碎片提取，实现动态 Context 注入。</p>
+                            </div>
+
+                            <!-- Phase 02：未完成 -->
+                            <div class="relative pl-6 border-l border-white/20">
+                                <p class="mono text-xs text-gray-600">PHASE_02</p>
+                                <p class="font-bold text-gray-600">可视化波形交互</p>
+                            </div>
+                        </div>
+
+                        <!-- 右列：系统扫描终端输出 -->
+                        <div class="bg-black/40 p-6 rounded mono text-[11px] text-[var(--blue)]">
+                            <p class="mb-2">>>>> SYSTEM_SCAN_START...</p>
+                            <p class="opacity-70 mb-1">Checking Memory... [DONE]</p>
+                            <p class="opacity-70 mb-1">Injecting RAG Truth Particles... [98%]</p>
+                            <p class="opacity-70 mb-1">Signal Loss Coefficient: 0.42</p>
+                            <!-- 闪烁的光标 -->
+                            <p class="text-[var(--primary)] mt-4 cursor-blink">_</p>
+                        </div>
+                    </div>
+                </section>
         </main>
 
         <!-- ========== 侧边栏：状态面板 ========== -->
@@ -421,7 +403,7 @@
         放在 body 结束前，确保 DOM 元素已经加载完成
     -->
     <script src="js/background.js"></script> <!-- 背景动画脚本 -->
-    <script src="js/chat.js"></script> <!-- 聊天交互脚本 -->
+    <script src="js/b147-chat-system.js"></script> <!-- B147 AI 聊天系统 -->
 </body>
 
 </html>
