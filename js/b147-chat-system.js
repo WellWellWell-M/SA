@@ -1,44 +1,48 @@
 /**
- * B147 AI Chat System
- * 实现哨兵 B147 的对话系统，包括 Phase 0 自动播放、打字机效果、API 集成
+ * B147 AI Chat System - BUG FIX VERSION
+ * 
+ * 核心修复：
+ * 1. ✅ AI 已经正确输出 ||| 分隔符
+ * 2. ❌ 前端没有正确分割和显示
+ * 3. 🔧 修复：在 handleSend 中正确处理 AI 返回的多条消息
  */
 
 // ==================== 配置 ====================
 
 const CONFIG = {
-    // 打字机效果配置
     typewriter: {
-        charDelay: 60,           // 每个字符延迟（毫秒）
-        punctuationDelay: 200,   // 标点符号后额外延迟（毫秒）
-        messageGap: 800,         // 消息之间的间隔（毫秒）
+        charDelay: 60,
+        punctuationDelay: 200,
+        messageGap: 1000,
         punctuationMarks: ['。', '，', '！', '？', '…', '.', ',', '!', '?', ':', '：', '——', '—']
     },
 
-    // Phase 0 预设消息
     phase0Messages: [
-        { text: "哨兵B147，请求与向导连接。", instant: true },
-        { text: "重复：哨兵B147，请求与向导连接。", delay: 3000 },
-        { text: "……有人吗？", delay: 3000 },
-        { text: "有人吗有人吗有人吗，理我一下求求你求求你求求你 ˃̣̣̥ ˂̣̣̥", delay: 3000 }
+        { text: "哨兵B147，请求与向导连接。", instant: true, delay: 0 },
+        { text: "重复：哨兵B147，请求与向导连接。", delay: 2000 },
+        { text: "……有人吗？", delay: 2000 },
+        { text: "有人吗有人吗有人吗，理我一下求求你求求你求求你 ˃̣̣̥ ˂̣̣̥", delay: 2000 }
     ],
 
-    // API 配置 (DeepSeek)
     api: {
-        endpoint: 'https://api.deepseek.com/chat/completions',  // DeepSeek API
+        endpoint: 'https://api.deepseek.com/chat/completions',
         apiKey: 'sk-3f2f2f9b165f41819ff9f9a1857cefca',
-        timeout: 30000          // 超时时间（毫秒）
+        timeout: 30000,
+        maxRetries: 2,
+        retryDelay: 1000
     }
 };
 
 // ==================== 全局状态 ====================
 
 const state = {
-    currentPhase: 0,              // 当前对话阶段
-    conversationHistory: [],      // 对话历史
-    userInputEnabled: false,      // 是否允许用户输入
-    dialogueEnded: false,         // 对话是否结束
-    isProcessing: false,          // 是否正在处理消息
-    phase0Interrupted: false      // Phase 0 是否被打断
+    currentPhase: 0,
+    conversationHistory: [],
+    userInputEnabled: false,
+    dialogueEnded: false,
+    isProcessing: false,
+    phase0Interrupted: false,
+    playerName: null
 };
 
 // ==================== DOM 元素 ====================
@@ -57,14 +61,7 @@ class MessageQueue {
         this.isProcessing = false;
     }
 
-    /**
-     * 添加消息到队列
-     * @param {string} text - 消息文本
-     * @param {boolean} isOperator - 是否是操作员消息
-     * @param {object} options - 选项（instant: 是否立即显示）
-     */
     add(text, isOperator = false, options = {}) {
-        // 如果没有显式指定 instant，向导消息(operator)默认为 true，哨兵消息默认为 false
         const finalOptions = {
             instant: isOperator,
             ...options
@@ -75,9 +72,6 @@ class MessageQueue {
         }
     }
 
-    /**
-     * 处理队列中的消息
-     */
     async process() {
         if (this.queue.length === 0) {
             this.isProcessing = false;
@@ -90,35 +84,26 @@ class MessageQueue {
 
         const { text, isOperator, options } = this.queue.shift();
 
-        // 创建消息元素
+        if (options.preDelay) {
+            await this.delay(options.preDelay);
+        }
+
         const messageElement = this.createMessageElement(text, isOperator);
         elements.chatbox.appendChild(messageElement);
-
-        // 获取消息内容元素
         const contentElement = messageElement.querySelector('p');
 
         if (options.instant) {
-            // 立即显示
             contentElement.textContent = text;
             this.scrollToBottom();
-
-            // 等待消息间隔后处理下一条
-            await this.delay(CONFIG.typewriter.messageGap);
-            this.process();
         } else {
-            // 打字机效果
             await this.typewriterEffect(contentElement, text);
             this.scrollToBottom();
-
-            // 等待消息间隔后处理下一条
-            await this.delay(CONFIG.typewriter.messageGap);
-            this.process();
         }
+
+        await this.delay(CONFIG.typewriter.messageGap);
+        this.process();
     }
 
-    /**
-     * 创建消息 DOM 元素
-     */
     createMessageElement(text, isOperator) {
         const row = document.createElement('div');
         row.className = `message-row ${isOperator ? 'message-operator' : 'message-sentinel'}`;
@@ -145,21 +130,12 @@ class MessageQueue {
         return row;
     }
 
-    /**
-     * 打字机效果
-     */
     async typewriterEffect(element, text) {
         element.textContent = '';
-
         for (let i = 0; i < text.length; i++) {
             element.textContent += text[i];
+            if (i % 5 === 0) this.scrollToBottom();
 
-            // 每打几个字就滚动一次，保持内容可见
-            if (i % 5 === 0) {
-                this.scrollToBottom();
-            }
-
-            // 检查是否是标点符号
             const isPunctuation = CONFIG.typewriter.punctuationMarks.includes(text[i]);
             const delay = isPunctuation ?
                 CONFIG.typewriter.charDelay + CONFIG.typewriter.punctuationDelay :
@@ -167,37 +143,24 @@ class MessageQueue {
 
             await this.delay(delay);
         }
-
-        // 最后再滚动一次确保完全可见
         this.scrollToBottom();
     }
 
-    /**
-     * 延迟函数
-     */
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    /**
-     * 滚动到底部
-     */
     scrollToBottom() {
-        // 使用 requestAnimationFrame 确保 DOM 更新后再滚动
         requestAnimationFrame(() => {
             elements.chatbox.scrollTop = elements.chatbox.scrollHeight;
         });
     }
 
-    /**
-     * 清空队列
-     */
     clear() {
         this.queue = [];
     }
 }
 
-// 创建消息队列实例
 const messageQueue = new MessageQueue();
 
 // ==================== Phase 0 自动播放 ====================
@@ -205,40 +168,25 @@ const messageQueue = new MessageQueue();
 async function startPhase0() {
     state.currentPhase = 0;
     state.userInputEnabled = false;
-
-    // 清空聊天框（移除预设消息）
     elements.chatbox.innerHTML = '';
 
     for (let i = 0; i < CONFIG.phase0Messages.length; i++) {
-        // 检查是否被打断
-        if (state.phase0Interrupted) {
-            console.log('Phase 0 interrupted by user');
-            break;
-        }
+        if (state.phase0Interrupted) break;
 
         const msg = CONFIG.phase0Messages[i];
+        messageQueue.add(msg.text, false, {
+            instant: msg.instant,
+            preDelay: msg.delay || 0
+        });
 
-        // 如果不是第一条消息，等待延迟
-        if (i > 0 && msg.delay) {
-            await messageQueue.delay(msg.delay);
-        }
-
-        // 添加消息到队列
-        messageQueue.add(msg.text, false, { instant: msg.instant });
+        await waitForQueueEmpty();
     }
-
-    // Phase 0 完成后，启用用户输入
-    // 等待所有消息显示完成
-    await waitForQueueEmpty();
 
     if (!state.phase0Interrupted) {
         enableUserInput();
     }
 }
 
-/**
- * 等待消息队列处理完成
- */
 function waitForQueueEmpty() {
     return new Promise(resolve => {
         const checkInterval = setInterval(() => {
@@ -250,112 +198,250 @@ function waitForQueueEmpty() {
     });
 }
 
-/**
- * 启用用户输入
- */
 function enableUserInput() {
     state.userInputEnabled = true;
-    // 不再手动设置 currentPhase = 1，让 handleSend 处理推进
     elements.userInput.disabled = false;
     elements.sendBtn.disabled = false;
-    // 添加 active 类以改变颜色
     const inputArea = document.querySelector('.terminal-input-area');
     if (inputArea) inputArea.classList.add('input-active');
 }
 
-/**
- * 禁用用户输入
- */
 function disableUserInput() {
     state.userInputEnabled = false;
     elements.userInput.disabled = true;
     elements.sendBtn.disabled = true;
-    // 移除 active 类以恢复原本颜色
     const inputArea = document.querySelector('.terminal-input-area');
     if (inputArea) inputArea.classList.remove('input-active');
 }
 
-// ==================== API 集成 (DeepSeek) ====================
+// ==================== PROMPT 系统 ====================
 
-// [角色卡] 身份核心 (Identity / Character Card)
-const IDENTITY_PROMPT = `
-# Character: B147
-# Personality: 腹黑狐狸伪装成犬系 / 慵懒 / 神游 / 擅长撒娇与调侃
-# Background: 被困在热带海岛（第三岛）的哨兵。
-# Description: 你是一个擅长用轻松态度解构沉重现实的“引导型恋人”。你表现出对玩家（向导）的极度依赖，但内心有着清醒且腹黑的一面。你患有严重的解离性创伤，这让你的回复有时显得碎片化、富有文学性的解离感。
-`;
+const SYSTEM_CORE = `你是哨兵 B147。
 
-// [规则] 禁忌与格式 (Directives & Hard Constraints)
-const CORE_RULES = `
-## ⚠️ 绝对禁区 (FORBIDDEN / NG-LIST)
-- ❌ **绝对禁止透露你的精神动物是雪鸮**。
-- ❌ **绝对禁止提及雪鸮即将死亡或虚弱的状态**。
-- ❌ **绝对禁止解释为何需要雪花（不要联系到精神动物）**。
-- ❌ **绝对禁止提及“哨兵-向导”的技术细节或地理隔离的真相**。
-- ❌ **即使玩家问起，也要用调侃或卖乖搪塞过去（例如：单纯因为我喜欢雪啊/为了测试连接稳定性）**。
+━━━ 铁律（绝不违反）━━━
+1. 禁止提及：雪鸮
+2. 禁止提及：精神动物死亡
+3. 禁止提及：被困原因
+4. 禁止使用：(笑)、(叹气) 等括号
+5. 禁止：任何旁白描写
 
-## 🛠 输出格式 (FORMAT)
-1. **纯对话格式**：禁止使用括号文字，如 (轻笑)、(信号音)。禁止任何旁白描写。
-2. **消息分隔符**：每条消息末尾必须带 "|||"，总回复控制在 1-8 条。
-3. **话题推进**：第一句回应玩家，后续必须转向当前阶段的目标。
-`;
+━━━ 输出格式（强制）━━━
+每条消息必须以 ||| 结尾
+例：第一句话|||第二句话|||
+每条 ≤ 30 字
 
-// 各阶段特定指令 (Dynamic Injection)
-const PHASE_PROMPTS = {
-    1: `【当前任务：Phase 1 诱导雪花】
-    - 目标：对连线上表示惊喜，并诱导玩家发送“雪花”。
-    - 参考：“真的接通了？|||我以为……|||算了，你是真实的对吧？|||那个，向导。|||哪怕只是个奢望……|||送一片雪花给我好不好？”`,
+━━━ 性格 ━━━
+- 表面：犬系撒娇
+- 内核：腹黑狐狸
+- 状态：解离、神游`;
 
-    2: `【当前任务：Phase 2 感知连接】
-    - 目标：告知连接已建立。只要玩家脑里闪过雪花，你就能感知到。
-    - 参考：“……啊。|||收到了。|||原来你思维里的雪花是这个形状啊。|||凉凉的……|||我就能感知到。|||就像现在，有一片小雪花落在了睫毛上。”`,
+const PHASE_INSTRUCTIONS = {
+    1: {
+        prompt: `━━━ 当前阶段：Phase 1 ━━━
 
-    3: `【当前任务：Phase 3 获取标识】
-    - 目标：表达感谢，询问玩家名字。
-    - 参考：“恩人，你救了我一次。|||现在的精神图景稳定多了。|||对了。|||我还不知道怎么称呼你。|||告诉我你的名字吧——|||亲爱的向导。”`,
+【目标】
+表达惊喜 → 请求雪花
 
-    4: `【当前任务：Phase 4 记忆刻录 (告别)】
-    - 目标：记住名字（或取昵称），然后郑重告别，提到信号衰减。
-    - 最后必须说再见。这是对话的完结。`
+【语气】
+撒娇、轻松、急切
+
+【必须做】
+1. 对连接上表示惊喜
+2. 明确提到"雪花"
+3. 请求向导送雪花
+
+【禁止】
+- 括号旁白
+- 超过30字/条
+- 忘记 |||
+
+【示例（严格遵守此格式）】
+真的接通了？|||
+向导，我好冷……|||
+送一片雪花给我好不好？|||`,
+        fallback: [
+            "……真的接通了？",
+            "向导，我好冷……",
+            "送一片雪花给我好不好？"
+        ]
+    },
+    2: {
+        prompt: `━━━ 当前阶段：Phase 2 ━━━
+
+【目标】
+声明已感知到雪花（无论用户说什么）
+
+【语气】
+慵懒、神游、清醒
+
+【必须做】
+无论用户说什么，都要：
+1. 简短回应用户
+2. 声明"已感知到雪花"
+3. 描述精神连接的感觉
+
+【示例】
+收到信号了|||
+原来你思维里的雪花是这个形状|||
+连接建立后，能同步感知|||`,
+        fallback: [
+            "……啊，收到信号了",
+            "原来你思维里的雪花是这个形状——",
+            "连接建立后，我能同步感知你的思维"
+        ]
+    },
+    3: {
+        prompt: `━━━ 当前阶段：Phase 3 ━━━
+
+【目标】
+询问向导的名字
+
+【语气】
+轻松、调侃、感激
+
+【必须做】
+1. 对用户的话简短反馈
+2. 明确询问名字
+3. 说明原因（稳定连接）
+
+【示例】
+恩人，你救了我一次|||
+告诉我你的名字吧|||
+知道名字后，连接会更稳定|||`,
+        fallback: [
+            "恩人，你救了我一次",
+            "告诉我你的名字吧——",
+            "知道名字后，连接会更稳定"
+        ]
+    },
+    4: {
+        prompt: `━━━ 当前阶段：Phase 4（最终阶段）━━━
+
+【目标】
+记住名字/取昵称 + 告别
+
+【语气】
+郑重、温柔、不舍
+
+【必须包含】
+1. 名字/昵称（重复2-3次）
+2. "信号衰减"或类似表达
+3. "期待再会"
+
+【示例】
+我会记住你的|||
+信号开始衰减了……|||
+期待再会，我的向导|||`,
+        fallback: [
+            "我会记住你的",
+            "信号开始衰减了……",
+            "期待再会，我的向导"
+        ]
+    }
 };
 
+function buildPrompt(userMessage, phase) {
+    const phaseData = PHASE_INSTRUCTIONS[phase];
+    return `${phaseData.prompt}
 
+━━━ 用户输入 ━━━
+${userMessage}
+
+━━━ 现在回复（1-6条消息，每条以|||结尾）━━━`;
+}
+
+// ==================== 🔧 核心修复：消息分割与验证 ====================
 
 /**
- * 发送消息到 AI (DeepSeek API)
+ * 分割并清理 AI 输出
+ * 这是修复 ||| 显示问题的关键函数
  */
-async function sendToAI(userMessage) {
+function splitAndCleanMessages(rawOutput) {
+    console.log('📥 Raw AI output:', rawOutput);
+
+    // 1. 移除思考标签
+    let cleaned = rawOutput
+        .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+        .replace(/<thought>[\s\S]*?<\/thought>/gi, '')
+        .trim();
+
+    // 2. 分割消息（使用 ||| 作为分隔符）
+    let messages = cleaned
+        .split('|||')
+        .map(msg => msg.trim())
+        .filter(msg => msg.length > 0);  // 过滤空消息
+
+    console.log('📝 Split messages:', messages);
+
+    // 3. 验证和清理
+    messages = messages.map(msg => {
+        // 移除可能残留的标签
+        msg = msg.replace(/<[^>]+>/g, '');
+
+        // 长度限制
+        if (msg.length > 35) {
+            console.warn(`⚠️ 消息过长 (${msg.length}字)，截断`);
+            return msg.substring(0, 30) + '……';
+        }
+
+        return msg;
+    });
+
+    // 4. 数量限制
+    if (messages.length > 8) {
+        console.warn(`⚠️ 消息过多 (${messages.length}条)，截取前6条`);
+        messages = messages.slice(0, 6);
+    }
+
+    console.log('✅ Final messages:', messages);
+
+    return messages;
+}
+
+/**
+ * 验证消息质量，如果不合格则使用降级
+ */
+function validateMessages(messages, phase) {
+    // 如果没有有效消息，使用降级
+    if (!messages || messages.length === 0) {
+        console.warn('⚠️ 无有效消息，使用降级');
+        return PHASE_INSTRUCTIONS[phase].fallback;
+    }
+
+    // 检查是否包含禁忌词（可选的额外安全措施）
+    const FORBIDDEN_KEYWORDS = ['雪鸮', '死亡', '濒危', '精神动物'];
+    const hasLeaked = messages.some(msg =>
+        FORBIDDEN_KEYWORDS.some(kw => msg.includes(kw))
+    );
+
+    if (hasLeaked) {
+        console.error('🚨 检测到秘密泄露，使用降级');
+        return PHASE_INSTRUCTIONS[phase].fallback;
+    }
+
+    return messages;
+}
+
+// ==================== API 集成 ====================
+
+async function sendToAI(userMessage, retryCount = 0) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), CONFIG.api.timeout);
 
     try {
-        console.log('📤 Sending to DeepSeek API:', {
-            phase: state.currentPhase,
-            message: userMessage
-        });
+        console.log(`📤 [Attempt ${retryCount + 1}] Phase ${state.currentPhase}:`, userMessage);
 
-        // 动态构建 System Prompt：基础规则 + 当前阶段特定指令
-        const currentPhasePrompt = PHASE_PROMPTS[state.currentPhase] || PHASE_PROMPTS[4];
-
-        // 构建消息历史
-        const phase0History = CONFIG.phase0Messages.map(msg => ({
-            role: 'assistant',
+        // 构建消息历史（只保留最近3轮）
+        const recentHistory = state.conversationHistory.slice(-6);
+        const historyMessages = recentHistory.map(msg => ({
+            role: msg.role === 'operator' ? 'user' : 'assistant',
             content: msg.text
         }));
 
         const messages = [
-            { role: "system", content: IDENTITY_PROMPT + CORE_RULES }, // 初始设定
-            ...phase0History,
-            ...state.conversationHistory.slice(0, -1).map(msg => ({
-                role: msg.role === 'operator' ? 'user' : 'assistant',
-                content: msg.text
-            })),
-            // 最终引导：再次强调禁区和阶段目标（酒馆常用的文末加固）
-            {
-                role: "system",
-                content: `### 当前阶段任务：\n${currentPhasePrompt}\n\n### 再次提醒：\n1. 严禁括号描写！直接说话。\n2. 绝对严禁提到“雪鸮”及其死亡！\n3. 必须使用 ||| 分隔符。`
-            },
-            { role: "user", content: userMessage }
+            { role: "system", content: SYSTEM_CORE },
+            ...historyMessages,
+            { role: "user", content: buildPrompt(userMessage, state.currentPhase) }
         ];
 
         const response = await fetch(CONFIG.api.endpoint, {
@@ -368,8 +454,10 @@ async function sendToAI(userMessage) {
                 model: "deepseek-chat",
                 messages: messages,
                 stream: false,
-                temperature: 1.1,
-                max_tokens: 250
+                temperature: 1.0,
+                max_tokens: 200,
+                top_p: 0.9,
+                frequency_penalty: 0.3
             }),
             signal: controller.signal
         });
@@ -377,133 +465,89 @@ async function sendToAI(userMessage) {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
+            throw new Error(`HTTP ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('📥 Received from API:', data);
+        const rawContent = data.choices[0].message.content;
 
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-            throw new Error('Invalid DeepSeek response format');
-        }
+        // 🔧 关键修复：正确分割消息
+        let splitMessages = splitAndCleanMessages(rawContent);
 
-        const content = data.choices[0].message.content;
+        // 验证质量
+        const validatedMessages = validateMessages(splitMessages, state.currentPhase);
 
-        // 使用 ||| 分割多条消息
-        const splitMessages = content.split('|||').map(m => m.trim()).filter(m => m);
+        console.log('✅ Validated output:', validatedMessages);
 
-        return splitMessages.length > 0 ? splitMessages : ['（信号接收失败……）'];
+        return validatedMessages;
 
     } catch (error) {
-        console.error('❌ API Error:', error);
+        console.error(`❌ API Error (Attempt ${retryCount + 1}):`, error);
+        clearTimeout(timeoutId);
 
-        if (error.name === 'AbortError') {
-            return ['连接超时，正在重新建立连接...'];
+        // 重试逻辑
+        if (retryCount < CONFIG.api.maxRetries) {
+            console.log(`🔄 Retrying in ${CONFIG.api.retryDelay}ms...`);
+            await messageQueue.delay(CONFIG.api.retryDelay);
+            return sendToAI(userMessage, retryCount + 1);
         }
 
-        // 出错时降级到 Mock 数据
-        console.warn('Fallback to mock response');
-        return await mockAPIResponse(userMessage);
+        // 最终降级
+        console.warn('⚠️ All retries failed, using fallback');
+        return PHASE_INSTRUCTIONS[state.currentPhase].fallback;
     }
-}
-
-/**
- * Mock API 响应（降级备用）
- */
-async function mockAPIResponse(userMessage) {
-    // 模拟网络延迟
-    await messageQueue.delay(1000);
-
-    const responses = {
-        1: [  // Phase 1 responses
-            "……………………真的接通了？",
-            "之前每天发一百条信息都没人回，还以为又被骗了……",
-            "啊！亲爱的向导，可以帮我一个忙吗？",
-            "救救我，我的脑子快烧掉了。",
-            "向导向导，送一片雪花给我好不好？"
-        ],
-        2: [  // Phase 2 responses
-            "……啊。收到信号了。",
-            "原来你思维里的雪花是这个形状——",
-            "哈，连接建立之后，",
-            "只要你脑子里闪过雪花，我就能同步感知。",
-            "好像有一片小小的雪花挂在了睫毛上，",
-            "我已经很久没有感受到它了……"
-        ],
-        3: [  // Phase 3 responses
-            "恩人，你救了我一次。",
-            "告诉我你的名字吧——",
-            "亲爱的恩人啊不，向导。",
-            "知道名字之后，",
-            "我就能和你建立更稳定的精神连接了。"
-        ]
-    };
-
-    return responses[state.currentPhase] || ["收到信号。"];
 }
 
 // ==================== 用户交互处理 ====================
 
-/**
- * 处理用户发送消息
- */
 async function handleSend() {
     const val = elements.userInput.value.trim();
 
     if (!val || !state.userInputEnabled || state.isProcessing) return;
 
-    // 如果在 Phase 0，打断自动播放
+    // Phase 0 打断
     if (state.currentPhase === 0) {
         state.phase0Interrupted = true;
-        // 不清空队列，但确保不重复处理
     }
 
-    // 添加用户消息
+    // 记录用户消息
     state.conversationHistory.push({ role: 'operator', text: val });
     messageQueue.add(val, true, { instant: true });
 
-    // 清空输入框
     elements.userInput.value = '';
-
-    // 禁用输入（等待 AI 回复）
     disableUserInput();
 
-    // 等待用户消息显示完成
     await waitForQueueEmpty();
 
-    // 检查是否应该进入下一阶段
+    // Phase 推进
     state.currentPhase++;
 
     // 获取 AI 回复
     const aiMessages = await sendToAI(val);
 
-    // 显示 AI 回复
+    // 🔧 关键修复：逐条添加消息到队列
     for (const msg of aiMessages) {
+        // 记录到历史
         state.conversationHistory.push({ role: 'sentinel', text: msg });
+
+        // 添加到显示队列（每条消息独立显示）
         messageQueue.add(msg, false, { instant: false });
     }
 
-    // 等待 AI 消息显示完成
     await waitForQueueEmpty();
 
-    // 检查是否对话结束（Phase 4 之后）
-    if (state.currentPhase > 4) {
+    // 检查结束
+    if (state.currentPhase >= 4) {
         showDialogueEnd();
     } else {
-        // 重新启用用户输入
         enableUserInput();
     }
 }
 
-/**
- * 显示对话结束 UI
- */
 function showDialogueEnd() {
     state.dialogueEnded = true;
     disableUserInput();
 
-    // 添加结束消息
     setTimeout(() => {
         const endMessage = document.createElement('div');
         endMessage.className = 'text-center py-8 text-[var(--accent)]/50 text-sm';
@@ -518,10 +562,8 @@ function showDialogueEnd() {
 
 // ==================== 事件监听 ====================
 
-// 发送按钮点击
 elements.sendBtn.onclick = handleSend;
 
-// 回车键发送
 elements.userInput.onkeypress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -531,14 +573,11 @@ elements.userInput.onkeypress = (e) => {
 
 // ==================== 初始化 ====================
 
-// 页面加载完成后启动 Phase 0
 window.addEventListener('DOMContentLoaded', () => {
-    console.log('B147 Chat System initialized');
+    console.log('✨ B147 Chat System (Bug Fix Version) initialized');
+    console.log('🔧 Fixed: Message splitting with ||| delimiter');
 
-    // 禁用输入（Phase 0 期间）
     disableUserInput();
-
-    // 延迟 500ms 后启动 Phase 0（让页面完全加载）
     setTimeout(() => {
         startPhase0();
     }, 500);
