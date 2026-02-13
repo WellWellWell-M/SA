@@ -244,7 +244,20 @@
     /* 移除聚焦时的轮廓 */
     caret-color: var(--primary);
     /* 光标颜色 */
+    caret-color: var(--primary);
+    /* 光标颜色 */
     transition: color 0.3s ease;
+}
+
+/**
+ * 移动端适配：防止 iOS 自动放大
+ * 当字体小于 16px 时，iOS Safari 会在聚焦时自动放大页面
+ */
+@media (max-width: 768px) {
+    .command-input {
+        font-size: 16px;
+        /* 强制 16px 防止缩放 */
+    }
 }
 
 /**
